@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rifa con Causa - Estatus</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cloudflare.com">
+    <style>
+        :root {
+            --rosa-fondo: #fce4ec;
+            --rosa-fuerte: #c2185b;
+            --vendido: #4caf50;
+            --texto: #880e4f;
+        }
+
+        body {
+            background-color: var(--rosa-fondo);
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            color: var(--texto);
+            margin: 0;
+        }
+
+        .card-rifa {
+            background-color: #f8bbd0;
+            width: 100%;
+            max-width: 480px;
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+
+        .header-rifa {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 20px 0;
+            gap: 10px;
+        }
+
+        .foto-producto {
+            width: 85px;
+            height: 85px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 3px solid white;
+            cursor: zoom-in;
+            transition: transform 0.2s;
+        }
+
+        .foto-producto:hover { transform: scale(1.05); }
+
+        .precio-badge {
+            background: white;
+            min-width: 100px; /* Un poco más ancho para que luzcan las puntas */
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+            /* Forma de estrella de 12 puntas */
+            clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+        }
+
+        .grid-numeros {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+            background-color: var(--rosa-fuerte);
+            border: 3px solid var(--rosa-fuerte);
+            margin: 20px 0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .numero {
+            background-color: white;
+            padding: 10px 2px;
+            font-size: 1rem;
+            font-weight: bold;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 65px;
+            color: var(--rosa-fuerte);
+            cursor: default;
+        }
+
+        .numero.vendido {
+            background-color: var(--vendido) !important;
+            color: white !important;
+        }
+
+        .nombre-comprador {
+            font-size: 0.55rem;
+            text-transform: uppercase;
+            margin-top: 4px;
+            width: 90%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: normal;
+        }
+
+        footer a { color: var(--rosa-fuerte); text-decoration: none; font-weight: bold; }
+
+        /* --- VIEWER / MODAL --- */
+        #viewer {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+        }
+
+        #viewer img {
+            max-width: 90%;
+            max-height: 85%;
+            border-radius: 8px;
+            box-shadow: 0 0 25px rgba(255,255,255,0.2);
+            object-fit: contain;
+        }
+
+        .btn-cerrar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            font-size: 35px;
+            cursor: pointer;
+            background: rgba(255,255,255,0.1);
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .btn-cerrar:hover { background: rgba(255,255,255,0.3); }
+
+        /* --- MODAL FORMULARIO --- */
+        #modal-registro {
+            display: none;
+            position: fixed;
+            z-index: 1001;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 350px;
+            text-align: center;
+        }
+
+        .modal-content input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        .btn-enviar {
+            background: var(--vendido);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+        }
+
+    </style>
+</head>
+<body>
+
+    <!-- Viewer -->
+    <div id="viewer" onclick="cerrarViewer()">
+        <span class="btn-cerrar">&times;</span>
+        <img id="img-ampliada" src="" alt="Vista previa">
+    </div>
+
+    <!-- Modal Registro -->
+    <div id="modal-registro">
+        <div class="modal-content">
+            <h3 id="titulo-modal">Apartar número</h3>
+            <input type="hidden" id="num-seleccionado">
+            <input type="text" id="nombre-input" placeholder="Nombre completo" required>
+            <input type="tel" id="tel-input" placeholder="Teléfono" required>
+            <button class="btn-enviar" onclick="enviarDatos()">Confirmar Apartado</button>
+            <button style="margin-top:10px; background:none; border:none; color:grey; cursor:pointer;" onclick="cerrarModal()">Cancelar</button>
+        </div>
+    </div>
+    
+    <div class="card-rifa">
+        <h1>Rifa con Causa</h1>
+        <p class="subtitulo">¡Participa y apóyanos: Podrás ganar un bolso!</p>
+
+        <div class="header-rifa">
+            <img src="1.png" alt="Bolso 1" class="foto-producto" onclick="ampliarImagen(this)">
+            <div class="precio-badge">
+                <strong>$50</strong>
+                <small>Boleto</small>
+            </div>
+            <img src="2.png" alt="Bolso 2" class="foto-producto" onclick="ampliarImagen(this)">
+        </div>
+
+        <footer>
+            Se dara a conocer al ganador por Facebook<br>
+            <a href="https://www.facebook.com/mariaenela.munozsoberanes" target="_blank">
+                <i class="fab fa-facebook" >
+                    <img src="./icon_f.png" alt="" style="width: 40px;">
+                    <span style="display: table-caption; padding-right: 30px;">Enela Munoz</span>
+                </i>
+            </a>
+            <a href="https://wa.me/+5216871304964">
+                <img src="./icon_what.png" style="width: 40px;">
+                    <span style="display: table-caption;">6871304964</span>
+            </a>
+        </footer>
+
+        <div class="grid-numeros" id="grid">
+            <span style="color: white; align-content: center;">...Cargando...</span>
+        </div>
+    </div>
+
+    <script>
+        const grid = document.getElementById('grid');
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyOMUPzsRrSYpTXFy4lsFzDruY28UwxFaGqGo__upoB_V2cuRiSFt49hV3mbXYTuS9-/exec"; 
+
+        function ampliarImagen(imgElement) {
+            const viewer = document.getElementById('viewer');
+            const imgAmpliada = document.getElementById('img-ampliada');
+            imgAmpliada.src = imgElement.src;
+            viewer.style.display = 'flex';
+            // Evitamos scroll en el fondo mientras vemos la imagen
+            document.body.style.overflow = 'hidden';
+        }
+
+        function cerrarViewer() {
+            document.getElementById('viewer').style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        let rifaData = {};
+
+        async function cargarDatos() {
+            try {
+                const res = await fetch(SCRIPT_URL);
+                const data = await res.json();
+                rifaData = {};
+                data.forEach(item => { 
+                    rifaData[parseInt(item.numero)] = item.nombre; 
+                });
+                renderizarGrid();
+            } catch (e) { 
+                console.error("Error de conexión");
+                renderizarGrid(); 
+            }
+        }
+
+        let numeroSeleccionado = null;
+
+        function abrirModal(num) {
+            if (rifaData[num]) return; // Si ya está vendido, no hacer nada
+            numeroSeleccionado = num;
+            document.getElementById('num-seleccionado').value = num;
+            document.getElementById('titulo-modal').innerText = "Apartar número " + (num < 10 ? '0'+num : num);
+            document.getElementById('modal-registro').style.display = 'flex';
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal-registro').style.display = 'none';
+            document.getElementById('nombre-input').value = '';
+            document.getElementById('tel-input').value = '';
+        }
+
+        function renderizarGrid() {
+            grid.innerHTML = '';
+            for (let i = 1; i <= 60; i++) {
+                const numLabel = i < 10 ? '0' + i : i;
+                const div = document.createElement('div');
+                
+                if (rifaData[i]) {
+                    div.className = 'numero vendido';
+                    div.innerHTML = `<span>${numLabel}</span><span class="nombre-comprador">${rifaData[i]}</span>`;
+                } else {
+                    div.className = 'numero';
+                    div.style.cursor = 'pointer'; // Indica que es clickeable
+                    div.innerHTML = `<span>${numLabel}</span>`;
+                    div.onclick = () => abrirModal(i); // Agregar evento clic
+                }
+                grid.appendChild(div);
+            }
+        }
+
+        async function enviarDatos() {
+            const nombre = document.getElementById('nombre-input').value;
+            const telefono = document.getElementById('tel-input').value;
+            const numero = document.getElementById('num-seleccionado').value;
+
+            if (!nombre || !telefono) return alert("Por favor llena todos los campos");
+
+            const btn = document.querySelector('.btn-enviar');
+            btn.innerText = "Enviando...";
+            btn.disabled = true;
+
+            try {
+                // Importante: Tu Google Script debe manejar peticiones POST o GET con parámetros
+                await fetch(`${SCRIPT_URL}?numero=${numero}&nombre=${nombre}&telefono=${telefono}`, {
+                    method: 'GET', // Usamos GET por simplicidad con Apps Script
+                    mode: 'no-cors'
+                });
+                
+                alert("¡Recibido! Tu número ha sido apartado.");
+                cerrarModal();
+                cargarDatos(); // Recargar para mostrar el cambio
+            } catch (e) {
+                alert("Error al enviar. Intenta de nuevo.");
+            } finally {
+                btn.innerText = "Confirmar Apartado";
+                btn.disabled = false;
+            }
+        }
+        cargarDatos();
+        setInterval(cargarDatos, 30000);
+    </script>
+</body>
+</html>
