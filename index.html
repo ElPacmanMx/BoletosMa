@@ -205,8 +205,8 @@
         <div class="modal-content">
             <h3 id="titulo-modal">Apartar número</h3>
             <input type="hidden" id="num-seleccionado">
-            <input type="text" id="nombre-input" placeholder="Nombre" required>
-            <input type="tel" id="tel-input" placeholder="Teléfono" required>
+            <input type="text" id="nombre-input" maxlength="15" placeholder="Nombre" required>
+            <input type="tel" id="tel-input" maxlength="10" placeholder="Teléfono" required>
             <button class="btn-enviar" onclick="enviarDatos()">Confirmar Apartado</button>
             <button style="margin-top:10px; background:none; border:none; color:grey; cursor:pointer;" onclick="cerrarModal()">Cancelar</button>
         </div>
@@ -222,7 +222,13 @@
                 <strong>$50</strong>
                 <small>Boleto</small>
             </div>
-            <img src="2.png" alt="Bolso 2" class="foto-producto" onclick="ampliarImagen(this)">
+            <div>
+                <img src="./tarjeta.png" style="width: 40px;">
+                <span style="display: table-caption;">Transferencia:</span>
+                <span style="font-weight: bolder;display: table-caption;">4169161466124368</span>
+                <span style="display: table-caption;">Maria Enela Muñoz</span>
+            </div>
+                <img src="2.png" alt="Bolso 2" class="foto-producto" onclick="ampliarImagen(this)">
         </div>
 
         <footer>
@@ -235,7 +241,7 @@
             </a>
             <a href="https://wa.me/+5216871304964">
                 <img src="./icon_what.png" style="width: 40px;">
-                    <span style="display: table-caption;">6871304964</span>
+                <span style="display: table-caption;">6871304964</span>
             </a>
         </footer>
 
